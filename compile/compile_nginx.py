@@ -16,10 +16,10 @@ def path_in_paths(path, paths, delimiter = ":"):
     
 
 def compile_nginx(args):
-    nginx_dir = args.nginx_dir
+    nginx = args.nginx
     
     #make clean
-    run("make clean", nginx_dir)
+    run("make clean", nginx)
 
     #configure
     configure = "./configure"
@@ -47,9 +47,13 @@ def compile_nginx(args):
         pcre_include = os.path.join(pcre_prefix, "include")
         pcre_link = os.path.join(pcre_prefix, "lib")
         #1. add lib directory
-        run("export LD_LIBRARY_PATH=LD_LIBRARY_PATH:"+pcre_link)
-        #or 2. disable softlinker
-        #...
+        # run("export LD_LIBRARY_PATH=LD_LIBRARY_PATH:"+pcre_link)
+        #or 2. remove softlinker
+        #TODO more gracefule 
+        if not pcre_link.startswith("/usr"):
+            run("rm libpcre.so.1", pcre_link)
+            run("mv libpcre.so.1.2.8 libpcre.so.1", pcre_link)
+        #end 2
         ld_opt += pcre_libs
         cc_opt += "-I"+pcre_include+" -Wl,-rpath="+pcre_link
         configure += " --with-pcre "
@@ -58,20 +62,20 @@ def compile_nginx(args):
         configure += " --with-ld-opt=\""+ld_opt+"\" "
     if cc_opt:
         configure += " --with-cc-opt=\""+cc_opt+"\" "
-    run(configure, nginx_dir)
+    run(configure, nginx)
 
     #make -j
-    run("make -j", nginx_dir)
+    run("make -j", nginx)
     #make install
-    run("make install", nginx_dir)
+    run("make install", nginx)
 
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(description="compile nginx")
-    parser.add_argument("--nginx_dir", dest="nginx_dir",default=os.getcwd())
+    parser.add_argument("--nginx", dest="nginx",default=os.getcwd())
     parser.add_argument("--modsecurity", dest="modsecurity", help="the directory of modsecurity")
-    parser.add_argument("--prefix", dest="prefix", help="nginx install directory")
     parser.add_argument("--pcre", dest="pcre", help="the directory of pcre-config")
-
+    parser.add_argument("--prefix", dest="prefix", help="nginx install directory")
+    
     args = parser.parse_args()
     compile_nginx(args)

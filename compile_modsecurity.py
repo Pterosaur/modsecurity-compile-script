@@ -35,7 +35,10 @@ def compile_modsecurity_posix(args):
             sys.stderr.write(pcre_config + " not exists\n")
             return
         configure += " --with-pcre="+pcre
-        run(configure, modsecurity)
+    if args.opt:
+        configure += args.opt
+    
+    run(configure, modsecurity)
 
     #make clean
     run("make clean", modsecurity)

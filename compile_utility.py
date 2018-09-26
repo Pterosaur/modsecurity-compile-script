@@ -12,20 +12,12 @@ def path_normalize(path):
 
 verbose = False
 
-def check_output(output):
-    if output[0] != 0:
-        if not verbose:
-            print output[1]
-        return False
-    return True
-
 def run(command, rundir = os.getcwd()):
     rundir = path_normalize(rundir)
     
-    if verbose:
-        print "\n******************************************"
-        print "command      : %s"%(command,)
-        print "cwd          : %s"%(rundir,)
+    print "******************************************"
+    print "command      : %s"%(command,)
+    print "cwd          : %s"%(rundir,)
 
 
     if type(command) == str:
@@ -37,13 +29,16 @@ def run(command, rundir = os.getcwd()):
     output = popen.communicate()
     return_code = popen.wait()
 
-    if output[1] or verbose:
-        if verbose:
-            print "stderr       : "
-        sys.stderr.write(output[1] + "\n")
     if verbose:
-        print "recturn code : %s" % (return_code,)
-        print "stdout       : "
-        print output[0]
-        print "******************************************\n"
+        print "\nstdout       : "
+        print "\n".join(map(lambda line : "+ " + line, output[0].split('\n')))
+
+    if output[1]:
+        print "stderr       : "
+        sys.stderr.write("\n".join(map(lambda line : "> " + line, output[1].split('\n'))) + "\n")
+
+    print "recturn code : %s" % (return_code,)
+    print "******************************************\n"
+    if return_code != 0:
+        raise ValueError("%s : %s (%s)" % (rundir, command, return_code))
     return (return_code, output[0])

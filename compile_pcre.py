@@ -16,30 +16,26 @@ def check_pcre(pcre):
     return True
 
 def compile_pcre_posix(args):
-    pcre = args.pcre
+    pcre = path_normalize(args.pcre)
     prefix = args.prefix
-    pcre = path_normalize(pcre)
+
     if not check_pcre(pcre):
         return False
     #configure
     configure = os.path.join(pcre, "configure")
     if prefix is None:
-        prefix = os.path.join(pcre,"build")
-        prefix = path_normalize(prefix)
+        prefix = os.path.join(pcre,"build")        
         run("mkdir build", pcre)
-    else:    
-        prefix = path_normalize(prefix)
+    
+    prefix = path_normalize(prefix)
     configure += " --prefix " + prefix
-    if not check_output(run(configure, pcre)):
-        return False
+    run(configure, pcre)
     
     #make -j
-    if not check_output(run("make -j", pcre)):
-        return False
+    run("make -j", pcre)
 
     #make insatll
-    if not check_output(run("make install", pcre)):
-        return False
+    run("make install", pcre)
     
     return True
 

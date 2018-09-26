@@ -16,25 +16,18 @@ def check_nginx(nginx):
 
     return True
 
-def path_in_paths(path, paths, delimiter = ":"):
-    if type(paths) == str:
-        paths = paths.split(delimiter)
-    path = path_normalize(path)
-    for temp_path in paths:
-        if path == path_normalize(temp_path):
-            return True
-
-    return False
-    
 
 def compile_nginx(args):
-    nginx = args.nginx
+    nginx = path_normalize(args.nginx)
     
     if not check_nginx(nginx):
         return False
     
     #make clean
-    check_output(run("make clean", nginx))
+    try:
+        run("make clean", nginx)
+    except:
+        pass
 
     #configure
     configure = os.path.join(nginx, "configure")
@@ -63,16 +56,18 @@ def compile_nginx(args):
 
         if not pcre_prefix.startswith("/usr"):
             pcre_lib = os.path.join(pcre_prefix, "lib")
-            if not check_output(run("mkdir nginx_linker_dir/", pcre_lib)) and not run("cp * nginx_linker_dir/", pcre_lib):
-                return False
+            run("mkdir -p nginx_linker_dir/", pcre_lib)
+            try:
+                run("cp * nginx_linker_dir/", pcre_lib)
+            except:
+                pass
             pcre_link = os.path.join(pcre_lib, "nginx_linker_dir")    
             #TODO more gracefule 
 
             # remove softlinker
             run("rm $(find . -regex './libpcre.so')", pcre_link)
             # mv libpcre.so.1.x to libpcre.so.1
-            if not check_output(run("mv $(find . -regex './libpcre.so.[0-9].+') $(find . -regex './libpcre.so.[0-9]')", pcre_link)):
-                return False
+            run("mv $(find . -regex './libpcre.so.[0-9].+') $(find . -regex './libpcre.so.[0-9]')", pcre_link)
             
             #TODO more gracefule 
             
@@ -85,13 +80,19 @@ def compile_nginx(args):
         pcre_include = os.path.join(pcre_prefix, "include")
 
         ld_opt += pcre_lib
-        cc_opt += "-I"+pcre_include+" -Wl,-rpath="+pcre_link
+        ld_opt += " -Wl,-rpath="+pcre_link
+        cc_opt += "-I"+pcre_include
         configure += " --with-pcre "
 
     if ld_opt:
         configure += " --with-ld-opt=\""+ld_opt+"\" "
     if cc_opt:
         configure += " --with-cc-opt=\""+cc_opt+"\" "
+
+    if args.opt:
+        configure += args.opt
+
+
     run(configure, nginx)
 
     #make -j

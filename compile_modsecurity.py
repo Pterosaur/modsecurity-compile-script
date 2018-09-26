@@ -15,15 +15,13 @@ def check_modsecurity(modsecurity):
     
 
 def compile_modsecurity_posix(args):
-    
-    modsecurity = args.modsecurity
-    modsecurity = path_normalize(modsecurity)
+    modsecurity = path_normalize(args.modsecurity)
     if not check_modsecurity(modsecurity):
         return
     #autogen.sh
     autogen = os.path.join(modsecurity, "autogen.sh")
-    if not check_output(run(autogen, modsecurity)):
-        return False
+    run(autogen, modsecurity)
+
 
     #configure
     configure = os.path.join(modsecurity, "configure")
@@ -37,18 +35,14 @@ def compile_modsecurity_posix(args):
             sys.stderr.write(pcre_config + " not exists\n")
             return
         configure += " --with-pcre="+pcre
-    if not check_output(run(configure, modsecurity)):
-        return False
+        run(configure, modsecurity)
 
     #make clean
-    if not check_output(run("make clean", modsecurity)):
-        return False
+    run("make clean", modsecurity)
 
     #make -j
-    if not check_output(run("make -j", modsecurity)):
-        return False
+    run("make -j", modsecurity)
 
-    return True
 
 def compile_modsecurity(args):
     #unix

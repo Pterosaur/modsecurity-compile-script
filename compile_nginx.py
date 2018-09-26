@@ -34,18 +34,18 @@ def compile_nginx(args):
     ld_opt = ""
     cc_opt = ""
 
-    if args.modsecurity:
+    if hasattr(args, "modsecurity") and args.modsecurity:
         modsecurity = args.modsecurity
         modsecurity = os.path.join(modsecurity, "nginx/modsecurity")
         modsecurity = path_normalize(modsecurity)
         configure += " --add-module="+modsecurity
 
-    if args.prefix:
+    if hasattr(args, "prefix") and args.prefix:
         prefix = args.prefix
         prefix = path_normalize(prefix)
         configure += " --prefix="+prefix
     
-    if args.pcre:
+    if hasattr(args, "pcre") and args.pcre:
         pcre_config = os.path.join(args.pcre, "pcre-config")
         pcre_config = path_normalize(pcre_config)
         import subprocess
@@ -89,7 +89,7 @@ def compile_nginx(args):
     if cc_opt:
         configure += " --with-cc-opt=\""+cc_opt+"\" "
 
-    if args.opt:
+    if hasattr(args, "opt") and args.opt:
         configure += args.opt
 
 

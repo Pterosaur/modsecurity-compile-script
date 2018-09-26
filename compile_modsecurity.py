@@ -25,9 +25,9 @@ def compile_modsecurity_posix(args):
 
     #configure
     configure = os.path.join(modsecurity, "configure")
-    if args.enable_standalone_module:
+    if hasattr(args, "enable_standalone_module") and args.enable_standalone_module:
         configure += " --enable-standalone-module "
-    if args.pcre:
+    if hasattr(args, "pcre") and args.pcre:
         pcre = args.pcre
         pcre = path_normalize(pcre)
         pcre_config = os.path.join(pcre , "pcre-config")
@@ -35,7 +35,7 @@ def compile_modsecurity_posix(args):
             sys.stderr.write(pcre_config + " not exists\n")
             return
         configure += " --with-pcre="+pcre
-    if args.opt:
+    if hasattr(args, "opt") and args.opt:
         configure += args.opt
     
     run(configure, modsecurity)
